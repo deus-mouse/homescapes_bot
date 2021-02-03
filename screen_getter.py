@@ -2,7 +2,7 @@
 
 from engine import initialize_pyautogui, countdown_timer, play_actions
 from time import sleep
-import pyautogui
+import pyautogui as pg
 
 DELAY_BETWEEN_LOOPS = 3.00
 
@@ -39,12 +39,12 @@ def confirm_position(position_name):
     else:
         raise Exception("Position to confirm not recognized")
 
-    pixel_matches = pyautogui.pixelMatchesColor(x, y, rgb, tolerance=10)
+    pixel_matches = pg.pixelMatchesColor(x, y, rgb, tolerance=10)
     if not pixel_matches:
         debug_str = "Pos: {} RGB expected: {} RGB found: {}".format(
             (x, y),
             rgb,
-            pyautogui.pixel(x, y)
+            pg.pixel(x, y)
         )
         raise Exception("Detected off course for {}. Debug: {}".format(
             position_name,

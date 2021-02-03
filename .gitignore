@@ -1,3 +1,8 @@
 # Project exclude paths
 /venv/
 /.idea/
+/needles/
+/probe.py
+/probe2.py
+/probe3.py
+/time_machine.py
