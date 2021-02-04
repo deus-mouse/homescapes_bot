@@ -1,36 +1,11 @@
-# newmatrix = []
-# for n,i in enumerate(matrix[0]):# assuming the lists are in the same length
-#
-#     templist =[]
-#     for l in matrix:
-#
-#         templist.append(l[n])
-#     print "templist: ",n,"content: ",templist
-#     newmatrix.append(templist)
+import cv2
+import pyautogui
+import numpy as np
 
 
-list = [[1, 2, 3], [4, 4, 6], [7, 8, 9], [10, 11, 12]]
 
 
-newmatrix = []
-for n, i in enumerate(list[0]):# assuming the lists are in the same length
-
-    templist =[]
-    for l in list:
-
-        templist.append(l[n])
-    print("templist: ", n, "content: ", templist)
-    newmatrix.append(templist)
-
-for column in newmatrix:
-    print(column)
-
-
-print(list[2][1])
-print(newmatrix[2][1])
-print(newmatrix[1][2])
-
-
-# list.reverse()
-# print(list)
-# print(list[1][1])
+image = pyautogui.screenshot(region=(560, 202, 1365, 768))
+# image = pyautogui.screenshot()
+image = cv2.cvtColor(np.array(image), cv2.COLOR_RGB2BGR)
+cv2.imwrite('needles/table.png', image)
