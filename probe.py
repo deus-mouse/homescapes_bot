@@ -8,26 +8,6 @@ from time import sleep, time
 
 os.chdir(os.path.dirname(os.path.abspath(__file__)))
 
-# Left panel
-# searching_block_img = cv.imread('needles/base_screen.png', cv.IMREAD_UNCHANGED)
-# green_cup_img = cv.imread('needles/green_cup3.png', cv.IMREAD_UNCHANGED)
-#
-# panel_result = cv.matchTemplate(searching_block_img, green_cup_img, cv.TM_CCOEFF_NORMED)
-#
-# min_val, max_val, min_loc, max_loc = cv.minMaxLoc(panel_result)
-#
-# print('Best match top left position: %s' % str(max_loc))
-# print('Best match confidence: %s' % max_val)
-# print(panel_result)
-#
-# threshold = 0.95
-# locations1 = np.where(panel_result >= threshold)
-# print('locations1', locations1)
-# print('len', len(locations1))
-#
-# locations1 = list(zip(*locations1[::-1]))
-# print('locations1', locations1)
-
 
 # Определяем область зрения стола
 center_x = 706
@@ -48,6 +28,9 @@ DELAY_BETWEEN_ACTIONS = 1.00
 
 # Создали пустую матрицу
 matrix = [[0 for i in range(14)] for i in range(10)]
+for line in matrix:
+    print(line)
+
 
 hooks = {'yellow.png': 1,
          'blue.png': 2,
@@ -61,14 +44,15 @@ index_column_pattern = '\d+$'
 
 # pattern_img_path = '/Users/roman/Documents/Documents_iMac/CodeProjects/PythonProjects/Homescapes_bot/needles/patterns'
 crop_img_path = '/Users/roman/Documents/Documents_iMac/CodeProjects/PythonProjects/Homescapes_bot/needles/crops'
-table_img_path = 'needles/table.png'
+full_table_img_path = 'needles/full_window.png'
+left_panel_img_path = 'needles/left_panel.png'
 # table_img_path = 'needles/trash/table3.png'
 
 
 def take_screenshot():
     image = pyautogui.screenshot(region=(560, 202, 1365, 768))
     image = cv.cvtColor(np.array(image), cv.COLOR_RGB2BGR)
-    cv.imwrite('needles/table.png', image)
+    cv.imwrite('needles/full_window.png', image)
 
 
 def cropper(path, input, height, width, area):
@@ -100,10 +84,10 @@ def cropper(path, input, height, width, area):
 
 def find_items(pattern_img_path, crop_img_path, threshold=0.5, debug_mode=None):
     # Table
-    path_crop = os.path.join('needles/crops', crop_img_path)
-    table_img = cv.imread(path_crop, cv.IMREAD_UNCHANGED)
-    path_pattern = os.path.join('needles/patterns', pattern_img_path)
-    pattern_img = cv.imread(path_pattern, cv.IMREAD_UNCHANGED)
+    # path_pattern = os.path.join('needles/patterns', pattern_img_path)
+    pattern_img = cv.imread(pattern_img_path, cv.IMREAD_UNCHANGED)
+    # path_crop = os.path.join('needles/crops', crop_img_path)
+    table_img = cv.imread(crop_img_path, cv.IMREAD_UNCHANGED)
 
     needle_w = pattern_img.shape[1]
     needle_h = pattern_img.shape[0]
@@ -153,6 +137,21 @@ def find_items(pattern_img_path, crop_img_path, threshold=0.5, debug_mode=None):
     return points
 
 
+def find_priority():
+    priority_list = []
+    im = Image.open('needles/full_window.png')
+    a = im.crop([0, 0, 100, 768])
+    a.save('needles/left_panel.png', 'PNG')
+    for pattern in os.listdir('needles/panel_patterns'):
+        pattern_path = os.path.join('needles/panel_patterns', pattern)
+        points = find_items(pattern_path, 'needles/left_panel.png', threshold=0.85, debug_mode='points')
+        if points:
+            value = hooks[pattern]
+            priority_list.append(value)
+
+    return priority_list
+
+
 def matrix_setter(matrix):
     # Перебираем все картинки в папке
     find = False
@@ -161,7 +160,10 @@ def matrix_setter(matrix):
             for crop in os.listdir('needles/crops'):
                 if crop[crop.rfind(".") + 1:] in ['jpg', 'jpeg', 'png']:
                     # print('обрабатываем', crop, 'with', pattern)
-                    points = find_items(pattern, crop, debug_mode='points')
+
+                    pattern_path = os.path.join('needles/patterns', pattern)
+                    crop_path = os.path.join('needles/crops', crop)
+                    points = find_items(pattern_path, crop_path, threshold=0.85, debug_mode='points')
                     if len(points) >= 1:
                         find = True
                         index = re.search(index_pattern, crop)
@@ -175,13 +177,9 @@ def matrix_setter(matrix):
     if find == False:
         offset = 35  # на сколько нужно сместиться если число по горизонтали нечетное
         area[0], area[2] = area[0] - offset, area[2] - offset
-        cropper(crop_img_path, table_img_path, 68, 68, area)
+        cropper(crop_img_path, full_table_img_path, 68, 68, area)
         matrix_setter(matrix)
     return matrix
-
-
-# for line in matrix_setter(matrix):
-#     print(line)
 
 
 def reverse_matrix(matrix):
@@ -194,29 +192,33 @@ def reverse_matrix(matrix):
     return reverse_matrix
 
 
-def matched(matrix):
+def matched(matrix, primary):
     # Ищем совпадения по горизонтали, получаем списки с индексами второго из совпавших
     matched_list = []
+    priority_list = []
     for line in range(len(matrix)):
         matched = [index for (index, letter) in enumerate(matrix[line])
                    if letter == matrix[line][index - 1] and matrix[line][index] != 0]
         if matched:
-            print('matched', matched)
             for index in matched:
                 list = []
-                print('full index = ', line, index)
-                # value = matrix[line][index]
+                value = matrix[line][index]
                 list.append(line)
                 list.append(index)
-                matched_list.append(list)
-    return matched_list
+                if value in primary:
+                    priority_list.append(list)
+                else:
+                    matched_list.append(list)
+
+    return priority_list, matched_list
 
 
 def find_five_matсhes(matrix, line, index):
     # Ищем совпадение на 5
     value = matrix[line][index]
     try:
-        if matrix[line - 1][index - 2] == value and matrix[line - 2][index - 2] == value:
+        if matrix[line - 1][index - 2] == value and matrix[line - 2][index - 2] == value \
+                and matrix[line][index - 2] != 0:
             #  совпадение top left
             #  ищем возможность сложить
             if matrix[line][index - 3] == value:
@@ -232,7 +234,8 @@ def find_five_matсhes(matrix, line, index):
             else:
                 print('не нашли возможность')
 
-        elif matrix[line - 1][index + 1] == value and matrix[line - 2][index + 1] == value:
+        elif matrix[line - 1][index + 1] == value and matrix[line - 2][index + 1] == value \
+                and matrix[line][index + 1] != 0:
             #  совпадение top right
             print('совпадение top right')
             #  ищем возможность сложить
@@ -249,7 +252,8 @@ def find_five_matсhes(matrix, line, index):
             else:
                 print('не нашли возможность')
 
-        elif matrix[line + 1][index - 2] == value and matrix[line + 2][index - 2] == value:
+        elif matrix[line + 1][index - 2] == value and matrix[line + 2][index - 2] == value \
+                and matrix[line][index - 2] != 0:
             #  совпадение lower left
             print('совпадение lower left')
             #  ищем возможность сложить
@@ -266,7 +270,8 @@ def find_five_matсhes(matrix, line, index):
             else:
                 print('не нашли возможность')
 
-        elif matrix[line + 1][index + 1] == value and matrix[line + 2][index + 1] == value:
+        elif matrix[line + 1][index + 1] == value and matrix[line + 2][index + 1] == value \
+                and matrix[line][index + 1] != 0:
             #  совпадение lower right
             print('совпадение lower right')
             #  ищем возможность сложить
@@ -294,7 +299,7 @@ def find_square_mathes(matrix, line, index):
     # Ищем совпадение на квадрат
     value = matrix[line][index]
     try:
-        if matrix[line - 1][index - 1] == value:
+        if matrix[line - 1][index - 1] == value and matrix[line - 1][index] != 0:
             #  совпадение top left
             print('совпадение top left')
             #  ищем возможность сложить
@@ -311,7 +316,7 @@ def find_square_mathes(matrix, line, index):
             else:
                 print('не нашли возможность')
 
-        elif matrix[line - 1][index] == value:
+        elif matrix[line - 1][index] == value and matrix[line - 1][index - 1] != 0:
             #  совпадение top right
             print('совпадение top right')
             #  ищем возможность сложить
@@ -328,7 +333,7 @@ def find_square_mathes(matrix, line, index):
             else:
                 print('не нашли возможность')
 
-        elif matrix[line + 1][index - 1] == value:
+        elif matrix[line + 1][index - 1] == value and matrix[line + 1][index] != 0:
             #  совпадение lower left
             print('совпадение lower left')
             #  ищем возможность сложить
@@ -345,7 +350,7 @@ def find_square_mathes(matrix, line, index):
             else:
                 print('не нашли возможность')
 
-        elif matrix[line + 1][index] == value:
+        elif matrix[line + 1][index] == value and matrix[line + 1][index - 1] != 0:
             #  совпадение lower right
             print('совпадение lower right')
             #  ищем возможность сложить
@@ -374,7 +379,7 @@ def find_three_mathes_in_line(matrix, line, index):
     try:
         # Ищем совпадение на тройку в ряд
         #  ищем возможность сложить
-        if matrix[line - 1][index - 2] == value:
+        if matrix[line - 1][index - 2] == value and matrix[line][index - 2] != 0:
             #  совпадение top left
             print('совпадение top left')
             # нашли. двигаем сверху вниз
@@ -382,7 +387,7 @@ def find_three_mathes_in_line(matrix, line, index):
             move_index = [line - 1, index - 2]
             print(f'!!! нашли 3 горизонтально. двигаем {move_index} {direction}')
 
-        elif matrix[line][index - 3] == value:
+        elif matrix[line][index - 3] == value and matrix[line][index - 2] != 0:
             #  совпадение middle left
             print('совпадение middle left')
             # нашли. двигаем слева направо
@@ -390,7 +395,7 @@ def find_three_mathes_in_line(matrix, line, index):
             move_index = [line, index - 3]
             print(f'!!! нашли 3 горизонтально. двигаем {move_index} {direction}')
 
-        elif matrix[line + 1][index - 2] == value:
+        elif matrix[line + 1][index - 2] == value and matrix[line][index - 2] != 0:
             #  совпадение lower left
             print('совпадение lower left')
             # нашли. двигаем снизу наверх
@@ -398,7 +403,7 @@ def find_three_mathes_in_line(matrix, line, index):
             move_index = [line + 1, index - 2]
             print(f'!!! нашли 3 горизонтально. двигаем {move_index} {direction}')
 
-        elif matrix[line - 1][index + 1] == value:
+        elif matrix[line - 1][index + 1] == value and matrix[line][index + 1] != 0:
             #  совпадение top right
             print('совпадение top right')
             # нашли. двигаем сверху вниз
@@ -406,7 +411,7 @@ def find_three_mathes_in_line(matrix, line, index):
             move_index = [line - 1, index + 1]
             print(f'!!! нашли 3 горизонтально. двигаем {move_index} {direction}')
 
-        elif matrix[line][index + 2] == value:
+        elif matrix[line][index + 2] == value and matrix[line][index + 1] != 0:
             #  совпадение middle right
             print('совпадение middle right')
             # нашли. двигаем справа налево
@@ -414,7 +419,7 @@ def find_three_mathes_in_line(matrix, line, index):
             move_index = [line, index + 2]
             print(f'!!! нашли 3 горизонтально. двигаем {move_index} {direction}')
 
-        elif matrix[line + 1][index + 1] == value:
+        elif matrix[line + 1][index + 1] == value and matrix[line][index + 1] != 0:
             #  совпадение lower right
             print('совпадение lower right')
             # нашли. двигаем снизу вверх
@@ -438,7 +443,7 @@ def find_three_mathes_in_column(matrix):
         try:
             # Ищем совпадение на тройку в столбец
             #  ищем возможность сложить
-            if reverse_matrix[line - 1][index - 2] == value:
+            if reverse_matrix[line - 1][index - 2] == value and matrix[line - 1][index] != 0:
                 #  совпадение top left
                 print('совпадение top left', value)
                 # нашли. двигаем слева направо
@@ -447,7 +452,7 @@ def find_three_mathes_in_column(matrix):
                 direction = 'to right'
                 print(f'!!! нашли 3 вертикально. двигаем {move_index} {direction}')
 
-            if reverse_matrix[line][index - 3] == value:
+            if reverse_matrix[line][index - 3] == value and matrix[line - 1][index] != 0:
                 #  совпадение top middle
                 print('совпадение top middle', value)
                 # нашли. двигаем сверху вниз
@@ -456,7 +461,7 @@ def find_three_mathes_in_column(matrix):
                 direction = 'to down'
                 print(f'!!! нашли 3 вертикально. двигаем {move_index} {direction}')
 
-            if reverse_matrix[line + 1][index - 2] == value:
+            if reverse_matrix[line + 1][index - 2] == value and matrix[line - 1][index] != 0:
                 #  совпадение top right
                 print('совпадение top right', value)
                 # нашли. двигаем справа налево
@@ -465,7 +470,7 @@ def find_three_mathes_in_column(matrix):
                 direction = 'to left'
                 print(f'!!! нашли 3 вертикально. двигаем {move_index} {direction}')
 
-            if reverse_matrix[line - 1][index + 1] == value:
+            if reverse_matrix[line - 1][index + 1] == value and matrix[line - 1][index] != 0:
                 #  совпадение lower left
                 print('совпадение lower left', value)
                 # нашли. двигаем слева направо
@@ -474,7 +479,7 @@ def find_three_mathes_in_column(matrix):
                 direction = 'to right'
                 print(f'!!! нашли 3 вертикально. двигаем {move_index} {direction}')
 
-            if reverse_matrix[line][index + 2] == value:
+            if reverse_matrix[line][index + 2] == value and matrix[line - 1][index] != 0:
                 #  совпадение low middle
                 print('совпадение low middle', value)
                 # нашли. двигаем справа налево
@@ -483,7 +488,7 @@ def find_three_mathes_in_column(matrix):
                 direction = 'to up'
                 print(f'!!! нашли 3 вертикально. двигаем {move_index} {direction}')
 
-            if reverse_matrix[line + 1][index + 1] == value:
+            if reverse_matrix[line + 1][index + 1] == value and matrix[line - 1][index] != 0:
                 #  совпадение lower right
                 print('совпадение lower right', value)
                 # нашли. двигаем справа налево
@@ -500,31 +505,64 @@ def find_three_mathes_in_column(matrix):
 
 
 def searching_best_match(matrix, matched):
-    for line, index in matched:
-        # print(line, index)
-        find_five = find_five_matсhes(matrix, line, index)
-        print('find_five', find_five)
-        if find_five is not None:
-            print('есть find_five', find_five)
-            return find_five
+    try:
+        for line, index in matched[0]:
+            # print(line, index)
+            find_five = find_five_matсhes(matrix, line, index)
+            print('find_five', find_five)
+            if find_five is not None:
+                print('есть find_five', find_five)
+                return find_five
 
-    for line, index in matched:
-        find_square = find_square_mathes(matrix, line, index)
-        if find_square is not None:
-            print('find_square', find_square)
-            return find_square
+        for line, index in matched[0]:
+            find_square = find_square_mathes(matrix, line, index)
+            if find_square is not None:
+                print('find_square', find_square)
+                return find_square
 
-    for line, index in matched:
-        find_three_line = find_three_mathes_in_line(matrix, line, index)
-        if find_three_line is not None:
-            print('find_three_line', find_three_line)
-            return find_three_line
+        for line, index in matched[0]:
+            find_three_line = find_three_mathes_in_line(matrix, line, index)
+            if find_three_line is not None:
+                print('find_three_line', find_three_line)
+                return find_three_line
 
-    for line, index in matched:
-        find_three_column = find_three_mathes_in_column(matrix, line, index)
-        if find_three_column is not None:
-            print('find_three_column', find_three_column)
-            return find_three_column
+        for line, index in matched[0]:
+            find_three_column = find_three_mathes_in_column(matrix, line, index)
+            if find_three_column is not None:
+                print('find_three_column', find_three_column)
+                return find_three_column
+
+        for line, index in matched[1]:
+            # print(line, index)
+            find_five = find_five_matсhes(matrix, line, index)
+            print('find_five', find_five)
+            if find_five is not None:
+                print('есть find_five', find_five)
+                return find_five
+
+        for line, index in matched[1]:
+            find_square = find_square_mathes(matrix, line, index)
+            if find_square is not None:
+                print('find_square', find_square)
+                return find_square
+
+        for line, index in matched[1]:
+            find_three_line = find_three_mathes_in_line(matrix, line, index)
+            if find_three_line is not None:
+                print('find_three_line', find_three_line)
+                return find_three_line
+
+        for line, index in matched[1]:
+            find_three_column = find_three_mathes_in_column(matrix, line, index)
+            if find_three_column is not None:
+                print('find_three_column', find_three_column)
+                return find_three_column
+
+    except Exception as ex:
+        print(ex)
+        pass
+
+
 
 
 def initialize_pyautogui():
@@ -576,11 +614,14 @@ def countdown_timer():
 
 def run(matrix):
     take_screenshot()
-    cropper(crop_img_path, table_img_path, 68, 68, area)
-    sleep(1)
-    matrix = matrix_setter(matrix)
-    matched_list = matched(matrix)
-    best_result = searching_best_match(matrix, matched_list)
+    cropper(crop_img_path, full_table_img_path, 68, 68, area)
+
+    matrix_set = matrix_setter(matrix)
+    for line in matrix_set:
+        print(line)
+    primary = find_priority()
+    matched_list = matched(matrix_set , primary)
+    best_result = searching_best_match(matrix_set, matched_list)
     print('best_result', best_result)
     play_actions(best_result)
 

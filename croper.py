@@ -3,7 +3,7 @@ import os
 import time
 
 
-def crop(path, input, height, width, area):
+def crop(path, input, area):
     index_1 = 0
     index_2 = 0
     im = Image.open(input)
@@ -38,11 +38,11 @@ center_x = 706
 center_y = 384
 box_side = 68
 
-area = (6, 6,
-        62, 62)
+area = (30, 415,
+        55, 470)
 # crop('/Users/roman/Documents/Documents_iMac/CodeProjects/PythonProjects/Homescapes_bot/needles/crop', 'needles/table3.png', 68, 68, 1, area)
 
 
-crop('/Users/roman/Documents/Documents_iMac/CodeProjects/PythonProjects/Homescapes_bot/needles/patterns', 'needles/for_patterns/IMG-[3][6].png', 68, 68, area)
+crop('/Users/roman/Documents/Documents_iMac/CodeProjects/PythonProjects/Homescapes_bot/needles/panel_patterns', 'needles/left_panel.png', area)
 
 

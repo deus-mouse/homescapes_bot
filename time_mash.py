@@ -5,7 +5,24 @@ import numpy as np
 
 
 
-image = pyautogui.screenshot(region=(560, 202, 1365, 768))
-# image = pyautogui.screenshot()
-image = cv2.cvtColor(np.array(image), cv2.COLOR_RGB2BGR)
-cv2.imwrite('needles/table.png', image)
+if matrix[line - 1][index - 2] == value and matrix[line - 2][index - 2] == value:
+    #  совпадение top left
+    #  ищем возможность сложить
+    if matrix[line][index - 3] == value:
+        if matrix[line][index - 2] == 0:
+            return
+            # нашли. двигаем слева направо
+        move_index = [line, index - 3]
+        direction = 'to right'
+        print(f'!!! нашли 5. двигаем {move_index} {direction}')
+    elif matrix[line + 1][index - 2] == value:
+        if matrix[line][index - 2] == 0:
+            pass
+
+
+
+list = [1, 2, 3]
+
+if 1 in list:
+    if 2 in list:
+        pass
