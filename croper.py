@@ -34,15 +34,17 @@ def crop(path, input, area):
     #         else:
     #             index_2 += 1
 
-center_x = 706
-center_y = 384
+center_x = 726
+center_y = 242
 box_side = 68
 
-area = (30, 415,
-        55, 470)
+x = 577
+y = 186
+area = (x, y,
+        x + 55, y + 55)
 # crop('/Users/roman/Documents/Documents_iMac/CodeProjects/PythonProjects/Homescapes_bot/needles/crop', 'needles/table3.png', 68, 68, 1, area)
 
 
-crop('/Users/roman/Documents/Documents_iMac/CodeProjects/PythonProjects/Homescapes_bot/needles/panel_patterns', 'needles/left_panel.png', area)
+crop('/Users/roman/Documents/Documents_iMac/CodeProjects/PythonProjects/Homescapes_bot/needles/patterns', 'needles/window2.png', area)
 
 
