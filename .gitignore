@@ -2,5 +2,13 @@
 /venv/
 /.idea/
 /needles/
+/probe.py
+/probe2.py
+/probe3.py
+/probe4.py
+/probe5.py
+/croper.py
+/engine.py
+
 
 /time_machine.py
