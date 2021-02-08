@@ -680,7 +680,6 @@ def countdown_timer():
 
 def run(matrix):
     try:
-        initialize_pyautogui()
         take_screenshot()
         cropper(crop_img_path, full_table_img_path, 68, 68, area)
 
@@ -699,6 +698,7 @@ def run(matrix):
 
 
 countdown_timer()
+initialize_pyautogui()
 while True:
     run(matrix)
     sleep(DELAY_BETWEEN_LOOPS)
