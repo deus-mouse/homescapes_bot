@@ -2,13 +2,19 @@
 /venv/
 /.idea/
 /needles/
+/prev versions
+
 /probe.py
-/bot_class.py
 /probe3.py
 /probe4.py
 /probe5.py
+/time_mash.py
+/tests/test_probe.py
+
+
 /croper.py
-/engine.py
+/screen_getter.py.png
+
+/screenshot.png
 
 
-/time_machine.py

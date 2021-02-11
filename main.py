@@ -702,3 +702,5 @@ initialize_pyautogui()
 while True:
     run(matrix)
     sleep(DELAY_BETWEEN_LOOPS)
+
+# take_screenshot()

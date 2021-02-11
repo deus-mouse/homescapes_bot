@@ -17,6 +17,7 @@ def countdown_timer():
     print("Go")
 
 
+
 class BotPuzzleSolver():
     def __init__(self):
         self.center_x, self.center_y = 706, 384
@@ -88,9 +89,9 @@ class BotPuzzleSolver():
 
 
 
-    def cropper(self):
+    def cropper(self, path_what, path_where):
         index_1, index_2 = 0, 0
-        im = Image.open(self.full_table_img_path)
+        im = Image.open(path_what)
         a = im.crop(self.area)
         img_width, img_height = a.size
         # a.show()
@@ -102,7 +103,7 @@ class BotPuzzleSolver():
                     o = b.crop()
                     # o.show()
                     index = '[' + str(index_1) + '][' + str(index_2) + ']'
-                    full_path = os.path.join(self.path_to_crops, "IMG-%s.png" % index)
+                    full_path = os.path.join(path_where, "IMG-%s.png" % index)
                     o.save(full_path, 'PNG')
                 except Exception as ex:
                     print('except', ex)
@@ -181,17 +182,18 @@ class BotPuzzleSolver():
         return self.priority_list
 
 
-    def matrix_setter(self):
+    def matrix_setter(self, path_to_crops):
         # Перебираем все картинки в папке
+
         find = False
         for pattern in os.listdir(self.patterns_path):
             if pattern[pattern.rfind(".") + 1:] in ['jpg', 'jpeg', 'png']:
-                for crop in os.listdir(self.path_to_crops):
+                for crop in os.listdir(path_to_crops):
                     if crop[crop.rfind(".") + 1:] in ['jpg', 'jpeg', 'png']:
                         # print('обрабатываем', crop, 'with', pattern)
 
                         pattern_path = os.path.join(self.patterns_path, pattern)
-                        crop_path = os.path.join(self.path_to_crops, crop)
+                        crop_path = os.path.join(path_to_crops, crop)
                         points = self.find_items(crop_path, pattern_path, threshold=0.78, debug_mode='points')
                         if len(points) >= 1:
                             find = True
@@ -210,8 +212,8 @@ class BotPuzzleSolver():
         if find == False:
             offset = 35  # на сколько нужно сместиться если число по горизонтали нечетное
             self.area[0], self.area[2] = self.area[0] - offset, self.area[2] - offset
-            self.cropper()
-            self.matrix_setter()
+            self.cropper(path_what = self.full_table_img_path, path_where = self.path_to_crops)
+            self.matrix_setter(path_to_crops)
         return self.matrix
 
 
@@ -720,17 +722,13 @@ class BotPuzzleSolver():
         try:
             self.initialize_pyautogui()
             self.take_screenshot()
-            # print(self.take_screenshot())
-            self.cropper()
-            self.matrix_setter()
+            self.cropper(path_what = self.full_table_img_path, path_where = self.path_to_crops)
+            self.matrix_setter(self.path_to_crops)
             for line in self.matrix:
                 print(line)
             primary = self.find_priority()
-            print('primary', primary)
             matched_list = self.matched(self.matrix, primary)
-            print('matched_list', matched_list)
             best_result = self.searching_best_match(matched_list, primary)
-            print('best_result', best_result)
             self.play_actions(best_result)
         except Exception as ex:
             print(ex)
@@ -739,9 +737,9 @@ class BotPuzzleSolver():
 
 
 
-countdown_timer()
-bot = BotPuzzleSolver()
-
-while True:
-    bot.run()
-    sleep(bot.DELAY_BETWEEN_LOOPS)
+# countdown_timer()
+# bot = BotPuzzleSolver()
+# #
+# while True:
+#     bot.run()
+#     sleep(bot.DELAY_BETWEEN_LOOPS)
