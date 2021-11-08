@@ -7,7 +7,6 @@ import pyautogui
 from time import sleep, time
 
 
-
 def countdown_timer():
     # Countdown timer
     print("Starting", end="", flush=True)
@@ -22,12 +21,13 @@ class BotPuzzleSolver():
         self.center_x, self.center_y = 706, 384
         self.box_side = 68
         self.area = [self.center_x - self.box_side * 7, self.center_y - self.box_side * 5,
-                self.center_x + self.box_side * 7, self.center_y + self.box_side * 5]
+                     self.center_x + self.box_side * 7, self.center_y + self.box_side * 5]
         self.offset = 0
         self.desktop_center = [1298, 610]
-        self.area_top_left_on_desktop = [self.desktop_center[0] - self.box_side * 7, self.desktop_center[1] - self.box_side * 5]
+        self.area_top_left_on_desktop = [self.desktop_center[0] - self.box_side * 7,
+                                         self.desktop_center[1] - self.box_side * 5]
 
-        self.path_to_crops = '/Users/roman/Documents/Documents_iMac/CodeProjects/PythonProjects/Homescapes_bot/needles/crops'
+        self.path_to_crops = "D:\CodeProjects\PythonProjects\homescapes_bot\needles\crops"
         self.full_table_img_path = 'needles/full_window.png'
         self.left_panel_img_path = 'needles/left_panel.png'
         self.panel_patterns_path = 'needles/panel_patterns'
@@ -43,23 +43,21 @@ class BotPuzzleSolver():
         self.matrix = [[0 for i in range(14)] for i in range(10)]
 
         self.hooks = {'yellow.png': 1,
-                 'blue.png': 2,
-                 'green.png': 3,
-                 'red.png': 4,
-                 'pink.png': 5,
-                 'fly.png': 9,
-                 'bomb.png': 9,
-                 'whirligig': 9}
+                      'blue.png': 2,
+                      'green.png': 3,
+                      'red.png': 4,
+                      'pink.png': 5,
+                      'fly.png': 9,
+                      'bomb.png': 9,
+                      'whirligig': 9}
         self.bonus_value = 9
 
         os.chdir(os.path.dirname(os.path.abspath(__file__)))
-
 
     def initialize_pyautogui(self):
         # Initialized PyAutoGUI
         # When fail-safe mode is True, moving the mouse to the upper-left corner will abort your program.
         pyautogui.FAILSAFE = True
-
 
     def take_screenshot(self):
         self.image = pyautogui.screenshot('screenshot.png', region=(560, 202, 1365, 768))
@@ -71,7 +69,7 @@ class BotPuzzleSolver():
         self.image = cv.cvtColor(np.array(self.image), cv.COLOR_RGB2BGR)
         cv.imwrite(self.full_table_img_path, self.image)
 
-        # print('self.image', self.image)
+        print('self.image', self.image)
         # print('type self.image', type(self.image))
         #
         # print('cv.imwrite(self.full_table_img_path, self.image)', cv.imwrite(self.full_table_img_path, self.image))
@@ -79,14 +77,8 @@ class BotPuzzleSolver():
         # print('self.full_table_img_path', self.full_table_img_path)
         # print('type self.full_table_img_path', type(self.full_table_img_path))
 
-
-
         # self.image.show()
         # cv.waitKey()
-
-
-
-
 
     def cropper(self):
         index_1, index_2 = 0, 0
@@ -112,7 +104,6 @@ class BotPuzzleSolver():
                     index_1 += 1
                 else:
                     index_2 += 1
-
 
     def find_items(self, find_where, find_what, threshold=0.5, debug_mode=None):
         img_for_searching = cv.imread(find_where, cv.IMREAD_UNCHANGED)
@@ -165,7 +156,6 @@ class BotPuzzleSolver():
             #     cv.waitKey()
         return points
 
-
     def find_priority(self):
         self.priority_list = []
         im = Image.open(self.full_table_img_path)
@@ -173,13 +163,13 @@ class BotPuzzleSolver():
         a.save(self.left_panel_img_path, 'PNG')
         for pattern in os.listdir(self.panel_patterns_path):
             priority_pattern_path = os.path.join(self.panel_patterns_path, pattern)
-            points = self.find_items(find_where=self.left_panel_img_path, find_what=priority_pattern_path, threshold=0.85, debug_mode='points')
+            points = self.find_items(find_where=self.left_panel_img_path, find_what=priority_pattern_path,
+                                     threshold=0.85, debug_mode='points')
             if points:
                 value = self.hooks[pattern]
                 self.priority_list.append(value)
 
         return self.priority_list
-
 
     def matrix_setter(self):
         # Перебираем все картинки в папке
@@ -214,7 +204,6 @@ class BotPuzzleSolver():
             self.matrix_setter()
         return self.matrix
 
-
     def reverse_matrix(self):
         self.rev_matrix = []
         for n, i in enumerate(self.matrix[0]):  # assuming the lists are in the same length
@@ -223,7 +212,6 @@ class BotPuzzleSolver():
                 templist.append(l[n])
             self.rev_matrix.append(templist)
         return self.rev_matrix
-
 
     def matched(self, matrix, primary):
         # Ищем совпадения по горизонтали, получаем списки с индексами второго из совпавших
@@ -252,7 +240,6 @@ class BotPuzzleSolver():
                         matched_list.append(list)
         print('bonus_list', bonus_list)
         return priority_list, matched_list, bonus_list
-
 
     def find_five_matсhes(self, line, index):
         # Ищем совпадение на 5
@@ -335,7 +322,6 @@ class BotPuzzleSolver():
             print('except', ex)
             pass
 
-
     def find_square_mathes(self, line, index):
         # Ищем совпадение на квадрат
         value = self.matrix[line][index]
@@ -414,7 +400,6 @@ class BotPuzzleSolver():
             print('except', ex)
             pass
 
-
     def find_three_mathes_in_line(self, line, index):
         value = self.matrix[line][index]
         try:
@@ -473,7 +458,6 @@ class BotPuzzleSolver():
         except Exception as ex:
             print('except', ex)
             pass
-
 
     def find_three_mathes_in_column(self, primary):
         rev_matrix = self.reverse_matrix()
@@ -539,7 +523,6 @@ class BotPuzzleSolver():
                     direction = 'to left'
                     print(f'!!! нашли 3 вертикально. двигаем {move_index} {direction}')
 
-
             for index, line in matched_list[1]:
                 value = rev_matrix[line][index]
                 # print('value', value)
@@ -604,7 +587,6 @@ class BotPuzzleSolver():
         except Exception as ex:
             print('except', ex)
             pass
-
 
     def searching_best_match(self, matched, primary):
         # print('matched', matched)
@@ -673,48 +655,51 @@ class BotPuzzleSolver():
             print(ex)
             pass
 
-
-
-
     def play_actions(self, best_result):
         index = best_result[0]
         direction = best_result[1]
         if direction == 'to up':
-            pos_out = [self.area_top_left_on_desktop[0] + self.box_side * index[1], self.area_top_left_on_desktop[1] + self.box_side * index[0]]
+            pos_out = [self.area_top_left_on_desktop[0] + self.box_side * index[1],
+                       self.area_top_left_on_desktop[1] + self.box_side * index[0]]
             pyautogui.click(pos_out[0], pos_out[1], button='left', duration=0.25)
-            pos_in = [self.area_top_left_on_desktop[0] + self.box_side * index[1], self.area_top_left_on_desktop[1] + self.box_side * (index[0] - 1)]
+            pos_in = [self.area_top_left_on_desktop[0] + self.box_side * index[1],
+                      self.area_top_left_on_desktop[1] + self.box_side * (index[0] - 1)]
             sleep(self.DELAY_BETWEEN_ACTIONS)
             pyautogui.click(pos_in[0], pos_in[1], button='left', duration=0.25)
 
         elif direction == 'to down':
-            pos_out = [self.area_top_left_on_desktop[0] + self.box_side * index[1], self.area_top_left_on_desktop[1] + self.box_side * index[0]]
+            pos_out = [self.area_top_left_on_desktop[0] + self.box_side * index[1],
+                       self.area_top_left_on_desktop[1] + self.box_side * index[0]]
             pyautogui.click(pos_out[0], pos_out[1], button='left', duration=0.25)
-            pos_in = [self.area_top_left_on_desktop[0] + self.box_side * index[1], self.area_top_left_on_desktop[1] + self.box_side * (index[0] + 1)]
+            pos_in = [self.area_top_left_on_desktop[0] + self.box_side * index[1],
+                      self.area_top_left_on_desktop[1] + self.box_side * (index[0] + 1)]
             sleep(self.DELAY_BETWEEN_ACTIONS)
             pyautogui.click(pos_in[0], pos_in[1], button='left', duration=0.25)
 
         elif direction == 'to left':
-            pos_out = [self.area_top_left_on_desktop[0] + self.box_side * index[1], self.area_top_left_on_desktop[1] + self.box_side * index[0]]
+            pos_out = [self.area_top_left_on_desktop[0] + self.box_side * index[1],
+                       self.area_top_left_on_desktop[1] + self.box_side * index[0]]
             pyautogui.click(pos_out[0], pos_out[1], button='left', duration=0.25)
-            pos_in = [self.area_top_left_on_desktop[0] + self.box_side * (index[1] - 1), self.area_top_left_on_desktop[1] + self.box_side * index[0]]
+            pos_in = [self.area_top_left_on_desktop[0] + self.box_side * (index[1] - 1),
+                      self.area_top_left_on_desktop[1] + self.box_side * index[0]]
             sleep(self.DELAY_BETWEEN_ACTIONS)
             pyautogui.click(pos_in[0], pos_in[1], button='left', duration=0.25)
 
         elif direction == 'to right':
-            pos_out = [self.area_top_left_on_desktop[0] + self.box_side * index[1], self.area_top_left_on_desktop[1] + self.box_side * index[0]]
+            pos_out = [self.area_top_left_on_desktop[0] + self.box_side * index[1],
+                       self.area_top_left_on_desktop[1] + self.box_side * index[0]]
             pyautogui.click(pos_out[0], pos_out[1], button='left', duration=0.25)
-            pos_in = [self.area_top_left_on_desktop[0] + self.box_side * (index[1] + 1), self.area_top_left_on_desktop[1] + self.box_side * index[0]]
+            pos_in = [self.area_top_left_on_desktop[0] + self.box_side * (index[1] + 1),
+                      self.area_top_left_on_desktop[1] + self.box_side * index[0]]
             sleep(self.DELAY_BETWEEN_ACTIONS)
             pyautogui.click(pos_in[0], pos_in[1], button='left', duration=0.25)
 
         elif direction == 'double click':
-            pos_out = [self.area_top_left_on_desktop[0] + self.box_side * index[0][1], self.area_top_left_on_desktop[1] + self.box_side * index[0][0]]
+            pos_out = [self.area_top_left_on_desktop[0] + self.box_side * index[0][1],
+                       self.area_top_left_on_desktop[1] + self.box_side * index[0][0]]
             pyautogui.doubleClick(pos_out[0], pos_out[1], button='left', duration=0.25)
             # pyautogui.click(pos_out[0][0][0], pos_out[0][0][1], button='left', duration=0.25)
             # pyautogui.click(pos_out[0][0][0], pos_out[0][0][1], button='left', duration=0.25)
-
-
-
 
     def run(self):
         try:
@@ -734,9 +719,6 @@ class BotPuzzleSolver():
             self.play_actions(best_result)
         except Exception as ex:
             print(ex)
-
-
-
 
 
 countdown_timer()
