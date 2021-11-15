@@ -714,9 +714,9 @@ class BotPuzzleSolver():
             self.matrix_setter()
             for line in self.matrix:
                 print(line)
-            # primary = self.find_priority()
-            # print('primary', primary)
-            # matched_list = self.matched(self.matrix, primary)
+            primary = self.find_priority()
+            print('primary', primary)
+            matched_list = self.matched(self.matrix, primary)
             # print('matched_list', matched_list)
             # best_result = self.searching_best_match(matched_list, primary)
             # print('best_result', best_result)
