@@ -219,7 +219,7 @@ class BotPuzzleSolver():
 
     def matched(self, matrix, primary):
         # Ищем совпадения по горизонтали, получаем списки с индексами второго из совпавших
-        matched_list = []
+        result_list = []
         priority_list = []
         bonus_list = []
         for line in range(len(self.matrix)):
@@ -230,10 +230,10 @@ class BotPuzzleSolver():
                 list.append(line)
                 list.append(index)
                 bonus_list.append(list)
-            matched = [index for (index, letter) in enumerate(self.matrix[line])
+            result = [index for (index, letter) in enumerate(self.matrix[line])
                        if letter == self.matrix[line][index - 1] and self.matrix[line][index] != 0]
-            if matched:
-                for index in matched:
+            if result:
+                for index in result:
                     list = []
                     value = self.matrix[line][index]
                     list.append(line)
@@ -241,11 +241,11 @@ class BotPuzzleSolver():
                     if value in primary:
                         priority_list.append(list)
                     else:
-                        matched_list.append(list)
+                        result_list.append(list)
         print('bonus_list', bonus_list)
-        return priority_list, matched_list, bonus_list
+        return priority_list, result_list, bonus_list
 
-    def find_five_matсhes(self, line, index):
+    def find_five_matсhe_in_line(self, line, index):
         # Ищем совпадение на 5
         value = self.matrix[line][index]
         try:
@@ -325,6 +325,12 @@ class BotPuzzleSolver():
         except Exception as ex:
             print('except', ex)
             pass
+
+
+    def find_five_mathes_in_column(primary):
+        pass
+        # TODO описать метод определения совпадения на 5 по вертикали.
+
 
     def find_square_mathes(self, line, index):
         # Ищем совпадение на квадрат
@@ -465,10 +471,10 @@ class BotPuzzleSolver():
 
     def find_three_mathes_in_column(self, primary):
         rev_matrix = self.reverse_matrix()
-        matched_list = self.matched(rev_matrix, primary)
+        result_list = self.matched(rev_matrix, primary)
 
         try:
-            for index, line in matched_list[0]:
+            for index, line in result_list[0]:
                 value = rev_matrix[line][index]
                 # print('value', value)
                 # Ищем совпадение на тройку в столбец
@@ -527,7 +533,7 @@ class BotPuzzleSolver():
                     direction = 'to left'
                     print(f'!!! нашли 3 вертикально. двигаем {move_index} {direction}')
 
-            for index, line in matched_list[1]:
+            for index, line in result_list[1]:
                 value = rev_matrix[line][index]
                 # print('value', value)
                 # Ищем совпадение на тройку в столбец
@@ -603,7 +609,7 @@ class BotPuzzleSolver():
 
             for line, index in matched[0]:
                 # print(line, index)
-                find_five = self.find_five_matсhes(line, index)
+                find_five = self.find_five_matсhe_in_line(line, index)
                 print('find_five', find_five)
                 if find_five is not None:
                     print('есть find_five', find_five)
@@ -630,7 +636,7 @@ class BotPuzzleSolver():
 
             for line, index in matched[1]:
                 # print(line, index)
-                find_five = self.find_five_matсhes(line, index)
+                find_five = self.find_five_matсhe_in_line(line, index)
                 print('find_five', find_five)
                 if find_five is not None:
                     print('есть find_five', find_five)
@@ -717,10 +723,10 @@ class BotPuzzleSolver():
             primary = self.find_priority()
             print('primary', primary)
             matched_list = self.matched(self.matrix, primary)
-            # print('matched_list', matched_list)
-            # best_result = self.searching_best_match(matched_list, primary)
-            # print('best_result', best_result)
-            # self.play_actions(best_result)
+            print('matched_list', matched_list)
+            best_result = self.searching_best_match(matched_list, primary)
+            print('best_result', best_result)
+            self.play_actions(best_result)
         except Exception as ex:
             print(ex)
 
@@ -728,8 +734,10 @@ class BotPuzzleSolver():
 countdown_timer()
 bot = BotPuzzleSolver()
 
+# Запуск бота в автономном режиме
 # while True:
 #     bot.run()
 #     sleep(bot.DELAY_BETWEEN_LOOPS)
 
+# Запуск бота на один шаг
 bot.run()

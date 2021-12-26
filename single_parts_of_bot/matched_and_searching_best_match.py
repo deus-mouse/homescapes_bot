@@ -9,106 +9,144 @@ matrix = [[0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
           [0, 0, 0, 0, 0, 3, 3, 2, 4, 3, 2, 0, 0, 0, 0, 0],
           [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]]
 
+bonus_value = 9
+primary = [2, 3]
 
-def matched():
-    priority_list_in_line=[[1, 9], [5, 6], [5, 10], [8, 6]]
-    priority_list_in_column=[[5, 6], [7, 7], [8, 9], [3, 10]]
-    matched_list_in_line=[[4, 9], [6, 6], [7, 6]]
-    matched_list_in_column=[[3, 5], [4, 8], [3, 9], [7, 10]]
-    bonus_list=[]
-    return priority_list_in_line, priority_list_in_column, matched_list_in_line, matched_list_in_column, bonus_list
+def matched(matrix, primary):
+    # Ищем совпадения по горизонтали, получаем списки с индексами второго из совпавших
+    matched_list = []
+    priority_list = []
+    bonus_list = []
+    for line in range(len(matrix)):
+        matrix_line = matrix[line]
+
+        # сначала ищем в строках бонусы. будем лопать их первыми
+        if bonus_value in matrix_line:
+            list = []
+            index = matrix_line.index(bonus_value)
+            list.append(line)
+            list.append(index)
+            bonus_list.append(list)
+
+        #  получаем список где первое значение это индекс значения в линии, второе значение это его код, hook
+        matched = [index for (index, value)
+                   in enumerate(matrix[line])  # enumerate отдает (index в текущей строке, его значение), мы берем index
+                   if value == matrix[line][index - 1] and matrix[line][index] != 0]
+        if matched:
+            for index in matched:
+                list = []
+                value = matrix[line][index]
+                list.append(line)
+                list.append(index)
+                # если значение из списка целей
+                if value in primary:
+                    priority_list.append(list)
+                else:
+                    matched_list.append(list)
+
+    return priority_list, matched_list, bonus_list
 
 
-def find_five_matсhes_in_line(matched_list):
+def reverse_matrix():
+    rev_matrix = []
+    for n, i in enumerate(matrix[0]):  # assuming the lists are in the same length
+        templist = []
+        for l in matrix:
+            templist.append(l[n])
+        rev_matrix.append(templist)
+    for line in rev_matrix:
+        print(line)
+    return rev_matrix
+
+
+def find_five_matсhes_in_line(line, index):
     # Ищем совпадение на 5
-    for line, index in matched_list:
+    value = matrix[line][index]
+    try:
+        if matrix[line - 1][index - 2] == value and matrix[line - 2][index - 2] == value \
+                and matrix[line][index - 2] != 0:
+            #  совпадение top left
+            #  ищем возможность сложить
+            if matrix[line][index - 3] == value:
+                # нашли. двигаем слева направо
+                move_index = [line, index - 3]
+                direction = 'to right'
+                print(f'!!! нашли 5. двигаем {move_index} {direction}')
+            elif matrix[line + 1][index - 2] == value:
+                # нашли. двигаем снизу наверх
+                direction = 'to up'
+                move_index = [line + 1, index - 2]
+                print(f'!!! нашли 5. двигаем {move_index} {direction}')
+            else:
+                print('не нашли возможность')
 
-        value = matrix[line][index]
-        try:
-            if matrix[line - 1][index - 2] == value and matrix[line - 2][index - 2] == value \
-                    and matrix[line][index - 2] != 0:
-                #  совпадение top left
-                #  ищем возможность сложить
-                if matrix[line][index - 3] == value:
-                    # нашли. двигаем слева направо
-                    move_index = [line, index - 3]
-                    direction = 'to right'
-                    print(f'!!! нашли 5. двигаем {move_index} {direction}')
-                elif matrix[line + 1][index - 2] == value:
-                    # нашли. двигаем снизу наверх
-                    direction = 'to up'
-                    move_index = [line + 1, index - 2]
-                    print(f'!!! нашли 5. двигаем {move_index} {direction}')
-                else:
-                    print('не нашли возможность')
+        elif matrix[line - 1][index + 1] == value and matrix[line - 2][index + 1] == value \
+                and matrix[line][index + 1] != 0:
+            #  совпадение top right
+            print('совпадение top right')
+            #  ищем возможность сложить
+            if matrix[line][index + 2] == value:
+                # нашли. двигаем справа налево
+                direction = 'to left'
+                move_index = [line, index + 2]
+                print(f'!!! нашли 5. двигаем {move_index} {direction}')
+            elif matrix[line + 1][index + 1] == value:
+                # нашли. двигаем снизу наверх
+                direction = 'to up'
+                move_index = [line + 1, index + 1]
+                print(f'!!! нашли 5. двигаем {move_index} {direction}')
+            else:
+                print('не нашли возможность')
 
-            elif matrix[line - 1][index + 1] == value and matrix[line - 2][index + 1] == value \
-                    and matrix[line][index + 1] != 0:
-                #  совпадение top right
-                print('совпадение top right')
-                #  ищем возможность сложить
-                if matrix[line][index + 2] == value:
-                    # нашли. двигаем справа налево
-                    direction = 'to left'
-                    move_index = [line, index + 2]
-                    print(f'!!! нашли 5. двигаем {move_index} {direction}')
-                elif matrix[line + 1][index + 1] == value:
-                    # нашли. двигаем снизу наверх
-                    direction = 'to up'
-                    move_index = [line + 1, index + 1]
-                    print(f'!!! нашли 5. двигаем {move_index} {direction}')
-                else:
-                    print('не нашли возможность')
+        elif matrix[line + 1][index - 2] == value and matrix[line + 2][index - 2] == value \
+                and matrix[line][index - 2] != 0:
+            #  совпадение lower left
+            print('совпадение lower left')
+            #  ищем возможность сложить
+            if matrix[line][index - 3] == value:
+                # нашли. двигаем слева направо
+                direction = 'to right'
+                move_index = [line, index - 3]
+                print(f'!!! нашли 5. двигаем {move_index} {direction}')
+            elif matrix[line - 1][index - 2] == value:
+                # нашли. двигаем сверху вниз
+                direction = 'to down'
+                move_index = [line - 1, index - 2]
+                print(f'!!! нашли 5. двигаем {move_index} {direction}')
+            else:
+                print('не нашли возможность')
 
-            elif matrix[line + 1][index - 2] == value and matrix[line + 2][index - 2] == value \
-                    and matrix[line][index - 2] != 0:
-                #  совпадение lower left
-                print('совпадение lower left')
-                #  ищем возможность сложить
-                if matrix[line][index - 3] == value:
-                    # нашли. двигаем слева направо
-                    direction = 'to right'
-                    move_index = [line, index - 3]
-                    print(f'!!! нашли 5. двигаем {move_index} {direction}')
-                elif matrix[line - 1][index - 2] == value:
-                    # нашли. двигаем сверху вниз
-                    direction = 'to down'
-                    move_index = [line - 1, index - 2]
-                    print(f'!!! нашли 5. двигаем {move_index} {direction}')
-                else:
-                    print('не нашли возможность')
+        elif matrix[line + 1][index + 1] == value and matrix[line + 2][index + 1] == value \
+                and matrix[line][index + 1] != 0:
+            #  совпадение lower right
+            print('совпадение lower right')
+            #  ищем возможность сложить
+            if matrix[line][index + 2] == value:
+                # нашли. двигаем справа налево
+                direction = 'to left'
+                move_index = [line, index + 2]
+                print(f'!!! нашли 5. двигаем {move_index} {direction}')
+            elif matrix[line - 1][index + 1] == value:
+                # нашли. двигаем сверху вниз
+                direction = 'to down'
+                move_index = [line - 1, index + 1]
+                print(f'!!! нашли 5. двигаем {move_index} {direction}')
+            else:
+                print('не нашли возможность')
 
-            elif matrix[line + 1][index + 1] == value and matrix[line + 2][index + 1] == value \
-                    and matrix[line][index + 1] != 0:
-                #  совпадение lower right
-                print('совпадение lower right')
-                #  ищем возможность сложить
-                if matrix[line][index + 2] == value:
-                    # нашли. двигаем справа налево
-                    direction = 'to left'
-                    move_index = [line, index + 2]
-                    print(f'!!! нашли 5. двигаем {move_index} {direction}')
-                elif matrix[line - 1][index + 1] == value:
-                    # нашли. двигаем сверху вниз
-                    direction = 'to down'
-                    move_index = [line - 1, index + 1]
-                    print(f'!!! нашли 5. двигаем {move_index} {direction}')
-                else:
-                    print('не нашли возможность')
+        return move_index, direction
 
-            return move_index, direction
-
-        except Exception as ex:
-            print('except', ex)
-            pass
+    except Exception as ex:
+        print('except', ex)
+        pass
 
 
-def find_five_matches_in_column(primary):
+def find_five_matches_in_column():
     pass
     # TODO описать метод определения совпадения на 5 по вертикали.
 
 
-def find_square_matches( line, index):
+def find_square_matches(line, index):
     # Ищем совпадение на квадрат
     value = matrix[line][index]
     try:
@@ -186,72 +224,73 @@ def find_square_matches( line, index):
         print('except', ex)
         pass
 
-def find_three_matches_in_line(priority_list_in_line):
-    for line, index in priority_list_in_line:
-        value = matrix[line][index]
-        try:
-            # Ищем совпадение на тройку в ряд
-            #  ищем возможность сложить
-            if matrix[line - 1][index - 2] == value and matrix[line][index - 2] != 0:
-                #  совпадение top left
-                print('совпадение top left')
-                # нашли. двигаем сверху вниз
-                direction = 'to down'
-                move_index = [line - 1, index - 2]
-                print(f'!!! нашли 3 горизонтально. двигаем {move_index} {direction}')
 
-            elif matrix[line][index - 3] == value and matrix[line][index - 2] != 0:
-                #  совпадение middle left
-                print('совпадение middle left')
-                # нашли. двигаем слева направо
-                direction = 'to right'
-                move_index = [line, index - 3]
-                print(f'!!! нашли 3 горизонтально. двигаем {move_index} {direction}')
+def find_three_matches_in_line(line, index):
+    value = matrix[line][index]
+    try:
+        # Ищем совпадение на тройку в ряд
+        #  ищем возможность сложить
+        if matrix[line - 1][index - 2] == value and matrix[line][index - 2] != 0:
+            #  совпадение top left
+            print('совпадение top left')
+            # нашли. двигаем сверху вниз
+            direction = 'to down'
+            move_index = [line - 1, index - 2]
+            print(f'!!! нашли 3 горизонтально. двигаем {move_index} {direction}')
 
-            elif matrix[line + 1][index - 2] == value and matrix[line][index - 2] != 0:
-                #  совпадение lower left
-                print('совпадение lower left')
-                # нашли. двигаем снизу наверх
-                direction = 'to up'
-                move_index = [line + 1, index - 2]
-                print(f'!!! нашли 3 горизонтально. двигаем {move_index} {direction}')
+        elif matrix[line][index - 3] == value and matrix[line][index - 2] != 0:
+            #  совпадение middle left
+            print('совпадение middle left')
+            # нашли. двигаем слева направо
+            direction = 'to right'
+            move_index = [line, index - 3]
+            print(f'!!! нашли 3 горизонтально. двигаем {move_index} {direction}')
 
-            elif matrix[line - 1][index + 1] == value and matrix[line][index + 1] != 0:
-                #  совпадение top right
-                print('совпадение top right')
-                # нашли. двигаем сверху вниз
-                direction = 'to down'
-                move_index = [line - 1, index + 1]
-                print(f'!!! нашли 3 горизонтально. двигаем {move_index} {direction}')
+        elif matrix[line + 1][index - 2] == value and matrix[line][index - 2] != 0:
+            #  совпадение lower left
+            print('совпадение lower left')
+            # нашли. двигаем снизу наверх
+            direction = 'to up'
+            move_index = [line + 1, index - 2]
+            print(f'!!! нашли 3 горизонтально. двигаем {move_index} {direction}')
 
-            elif matrix[line][index + 2] == value and matrix[line][index + 1] != 0:
-                #  совпадение middle right
-                print('совпадение middle right')
-                # нашли. двигаем справа налево
-                direction = 'to left'
-                move_index = [line, index + 2]
-                print(f'!!! нашли 3 горизонтально. двигаем {move_index} {direction}')
+        elif matrix[line - 1][index + 1] == value and matrix[line][index + 1] != 0:
+            #  совпадение top right
+            print('совпадение top right')
+            # нашли. двигаем сверху вниз
+            direction = 'to down'
+            move_index = [line - 1, index + 1]
+            print(f'!!! нашли 3 горизонтально. двигаем {move_index} {direction}')
 
-            elif matrix[line + 1][index + 1] == value and matrix[line][index + 1] != 0:
-                #  совпадение lower right
-                print('совпадение lower right')
-                # нашли. двигаем снизу вверх
-                direction = 'to up'
-                move_index = [line + 1, index + 1]
-                print(f'!!! нашли 3 горизонтально. двигаем {move_index} {direction}')
+        elif matrix[line][index + 2] == value and matrix[line][index + 1] != 0:
+            #  совпадение middle right
+            print('совпадение middle right')
+            # нашли. двигаем справа налево
+            direction = 'to left'
+            move_index = [line, index + 2]
+            print(f'!!! нашли 3 горизонтально. двигаем {move_index} {direction}')
 
-            return move_index, direction
+        elif matrix[line + 1][index + 1] == value and matrix[line][index + 1] != 0:
+            #  совпадение lower right
+            print('совпадение lower right')
+            # нашли. двигаем снизу вверх
+            direction = 'to up'
+            move_index = [line + 1, index + 1]
+            print(f'!!! нашли 3 горизонтально. двигаем {move_index} {direction}')
 
-        except Exception as ex:
-            print('except', ex)
-            pass
+        return move_index, direction
 
-def find_three_matches_in_column( primary):
+    except Exception as ex:
+        print('except', ex)
+        pass
+
+
+def find_three_matches_in_column(primary):
     rev_matrix = reverse_matrix()
-    result_list = matched(rev_matrix, primary)
+    matched_list = matched(rev_matrix, primary)
 
     try:
-        for index, line in result_list[0]:
+        for index, line in matched_list[0]:
             value = rev_matrix[line][index]
             # print('value', value)
             # Ищем совпадение на тройку в столбец
@@ -310,7 +349,7 @@ def find_three_matches_in_column( primary):
                 direction = 'to left'
                 print(f'!!! нашли 3 вертикально. двигаем {move_index} {direction}')
 
-        for index, line in result_list[1]:
+        for index, line in matched_list[1]:
             value = rev_matrix[line][index]
             # print('value', value)
             # Ищем совпадение на тройку в столбец
@@ -378,47 +417,54 @@ def find_three_matches_in_column( primary):
 
 def searching_best_match(matched, primary):
     # print('matched', matched)
-    priority_list_in_line = matched[0]
-    priority_list_in_column = matched[1]
-    matched_list_in_line = matched[2]
-    matched_list_in_column = matched[3]
-    bonus_list = matched[4]
-
+    priority_list = matched[0]
+    matched_list = matched[1]
+    bonus_list = matched[2]
     try:
+        # Если находим бонус - сразу лопаем его
         if bonus_list != []:
             # print(line, index)
             print('find bonus!')
             direction = 'double click'
             return bonus_list, direction
-            # мы могли это сделать еще раньше
 
-        if priority_list_in_line != []:
-            find_five_in_line_priority = find_five_matсhes_in_line(priority_list_in_line)
-            print('find_five_in_line_priority', find_five_in_line_priority)
-            if find_five_in_line_priority is not None:
-                print('есть find_five_in_line_priority', find_five_in_line_priority)
-                return find_five_in_line_priority
+        # Сначала ищем совпадения по приоритетным фигурам
+        for line, index in priority_list:
+            # print(line, index)
+            find_five_line = find_five_matсhes_in_line(line, index)
+            print('find_five', find_five_line)
+            if find_five_line is not None:
+                print('есть find_five', find_five_line)
+                return find_five_line
 
-        for line, index in priority_list_in_line:
+        find_five_column = find_five_matches_in_column(primary)  # TODO проверить данный метод на работу
+        print('find_five', find_five_column)
+        if find_five_column is not None:
+            print('есть find_five', find_five_column)
+            return find_five_column
+
+        for line, index in priority_list:
             find_square = find_square_matches(line, index)
             if find_square is not None:
                 print('find_square', find_square)
                 return find_square
 
-        for line, index in priority_list_in_line:
-            find_three_priority_line = find_three_matches_in_line(priority_list_in_line)
-            if find_three_priority_line is not None:
-                print('find_three_line', find_three_priority_line)
-                return find_three_priority_line
+        for line, index in priority_list:
+            find_three_line = find_three_matches_in_line(line, index)
+            print('find_three_column', find_three_line)
+            if find_three_line is not None:
+                print('find_three_column', find_three_line)
+                return find_three_line
 
-        # for line, index in matched[0]:
         find_three_column = find_three_matches_in_column(primary)
         print('find_three_column', find_three_column)
         if find_three_column is not None:
             print('find_three_column', find_three_column)
             return find_three_column
 
-        for line, index in matched[1]:
+
+        # Теперь ищем совпадения по остальным фигурам (не приоритетным)
+        for line, index in matched_list:
             # print(line, index)
             find_five = find_five_matсhes_in_line(line, index)
             print('find_five', find_five)
@@ -426,13 +472,19 @@ def searching_best_match(matched, primary):
                 print('есть find_five', find_five)
                 return find_five
 
-        for line, index in matched[1]:
+        find_five_column = find_five_matches_in_column()  # TODO описать данный метод
+        print('find_five', find_five_column)
+        if find_five_column is not None:
+            print('есть find_five', find_five_column)
+            return find_five_column
+
+        for line, index in matched_list:
             find_square = find_square_matches(line, index)
             if find_square is not None:
                 print('find_square', find_square)
                 return find_square
 
-        for line, index in matched[1]:
+        for line, index in matched_list:
             find_three_line = find_three_matches_in_line(line, index)
             if find_three_line is not None:
                 print('find_three_line', find_three_line)
@@ -448,3 +500,11 @@ def searching_best_match(matched, primary):
     except Exception as ex:
         print(ex)
         pass
+
+
+
+matched_list = matched(matrix=matrix, primary=primary)
+print('matched_list', matched_list)
+
+best_result = searching_best_match(matched_list, primary)
+print('best_result', best_result)
