@@ -1,4 +1,5 @@
-Бот для решения пазлом в игре Homescapes (Playrix).
+Bot resolving pazzles in game Homescapes (Playrix)
+
 
 Порядок написания:
 
